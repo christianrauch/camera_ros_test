@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>camera_ros_test</name>
+  <version>0.0.0</version>
+  <description>camera_ros tests</description>
+  <maintainer email="Rauch.Christian@gmx.de">Christian Rauch</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>libcamera</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>rcl_interfaces</depend>
+  <depend>ament_cmake_gtest</depend>
+  <depend>camera_ros</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
