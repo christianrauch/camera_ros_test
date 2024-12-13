@@ -289,7 +289,7 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_ae_enabled_exposure)
   ASSERT_EQ(res_indiv[0].reason, std::string {});
   // second parameter 'ExposureTime' causes conflict with previous 'AeEnable'
   ASSERT_FALSE(res_indiv[1].successful);
-  ASSERT_EQ(res_indiv[1].reason, conflict_reason);
+  ASSERT_EQ(res_indiv[1].reason, "parameter 'ExposureTime' cannot be set because it was not declared");
   // only the parameter update for 'AeEnable' will have been applied
   ASSERT_EQ(param_client->get_parameters({"AeEnable"}).front().as_bool(), true);
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
@@ -299,7 +299,7 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_ae_enabled_exposure)
   const std::vector<rcl_interfaces::msg::SetParametersResult> res_exposure =
     param_client->set_parameters({{"ExposureTime", exp_tar2}});
   ASSERT_FALSE(res_exposure[0].successful);
-  ASSERT_EQ(res_exposure[0].reason, conflict_reason);
+  ASSERT_EQ(res_exposure[0].reason, "parameter 'ExposureTime' cannot be set because it was not declared");
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
 }
 
@@ -321,8 +321,8 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_exposure_ae_enabled)
   // second parameter 'AeEnable' takes precedence over previous 'ExposureTime'
   ASSERT_TRUE(res_indiv[1].successful);
   ASSERT_EQ(res_indiv[1].reason, std::string {});
-  // both parameters will have been updated, but only 'AeEnable' will be effective
-  ASSERT_EQ(param_client->get_parameters({"ExposureTime"}).front().as_int(), exp_tar1);
+  // both parameters will have been updated individually, but 'ExposureTime' will have been unset due to 'AeEnable'
+  ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
   ASSERT_EQ(param_client->get_parameters({"AeEnable"}).front().as_bool(), true);
 }
 
