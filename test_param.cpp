@@ -74,6 +74,20 @@ protected:
     exec->add_node(camera.get_node_base_interface());
   }
 
+  void
+  set_check_all_successful(const std::vector<rclcpp::Parameter> &parameters)
+  {
+    const std::vector<rcl_interfaces::msg::SetParametersResult> res =
+      param_client->set_parameters(parameters);
+
+    for (size_t i = 0; i < parameters.size(); i++) {
+      ASSERT_EQ(res[i].reason, std::string {});
+      ASSERT_TRUE(res[i].successful);
+      ASSERT_EQ(param_client->get_parameters({parameters[i].get_name()}).front().get_parameter_value(),
+                parameters[i].get_parameter_value());
+    }
+  }
+
   const std::string CAMERA_NODE_NAME = "camera";
 
   const std::string conflict_reason = "AeEnable and ExposureTime must not be set simultaneously";
