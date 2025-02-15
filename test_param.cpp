@@ -1,3 +1,4 @@
+#include "image_subscriber.hpp"
 #include "instantiate_component.hpp"
 #include "log_client.hpp"
 #include "param_client.hpp"
@@ -28,7 +29,10 @@ protected:
 
     param_client = std::make_unique<ParamClient>(rclcpp::NodeOptions {}.use_intra_process_comms(true), CAMERA_NODE_NAME, exec);
 
+    image_subscriber = std::make_unique<ImageSubscriber>(rclcpp::NodeOptions {}.use_intra_process_comms(true), CAMERA_NODE_NAME);
+
     exec->add_node(log_client->get_node_base_interface());
+    exec->add_node(image_subscriber->get_node_base_interface());
   }
 
   void
@@ -45,6 +49,12 @@ protected:
   {
     // spin log nodes until all work is done
     exec->spin_all(std::chrono::nanoseconds {0});
+  }
+
+  bool
+  wait_image()
+  {
+    return image_subscriber->wait();
   }
 
   void
@@ -76,6 +86,7 @@ protected:
   rclcpp_components::NodeInstanceWrapper camera;
   std::unique_ptr<ParamClient> param_client;
   std::unique_ptr<LogClient> log_client;
+  std::unique_ptr<ImageSubscriber> image_subscriber;
 };
 
 
