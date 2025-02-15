@@ -394,6 +394,24 @@ TEST_F(ParamTest, override_default_restore_exposure)
   ASSERT_TRUE(log_client->regex_search("setting integer parameter ExposureTime to (.*)"));
 }
 
+TEST_F(ParamTest, override_default_param_after_ae)
+{
+  instantiate_camera({});
+
+  ASSERT_TRUE(param_client->is_set_parameter("AeEnable"));
+  ASSERT_EQ(param_client->get_parameters({"AeEnable"}).front().as_bool(), true);
+  ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
+
+  set_check_all_successful({{"AeEnable", false}});
+  ASSERT_TRUE(param_client->has_parameter("ExposureTime"));
+  set_check_all_successful({{"Contrast", 2.0}});
+  set_check_all_successful({{"AeEnable", true}});
+  // wait for request allback to reset old parameters
+  wait_image();
+  ASSERT_TRUE(param_client->has_parameter("ExposureTime"));
+  set_check_all_successful({{"Contrast", 4.0}});
+}
+
 int
 main(int argc, char **argv)
 {
