@@ -17,11 +17,10 @@ target_include_directories(${PROJECT_NAME}_test_param PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(${PROJECT_NAME}_test_param
-    rclcpp
-    rclcpp_components
-    rcl_interfaces
-    camera_ros
+target_link_libraries(${PROJECT_NAME}_test_param
+  rclcpp::rclcpp
+  rclcpp_components::component
+  ${rcl_interfaces_TARGETS}
 )
 
 target_include_directories(${PROJECT_NAME}_test_param PUBLIC ${libcamera_INCLUDE_DIRS})
