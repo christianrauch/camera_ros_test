@@ -4,6 +4,7 @@
 #include "param_client.hpp"
 #include <gtest/gtest.h>
 #include <libcamera/camera_manager.h>
+#include <libcamera/control_ids.h>
 #include <rclcpp/rclcpp.hpp>
 
 
@@ -125,14 +126,14 @@ TEST_F(ParamTest, override_default)
 
   // 'ExposureTimeMode' is set to default value
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 0);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeAuto);
   // 'ExposureTime' is not set
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
 }
 
 TEST_F(ParamTest, override_ae_disabled)
 {
-  instantiate_camera({{"ExposureTimeMode", 1}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
 
   spin_all();
 
@@ -146,7 +147,7 @@ TEST_F(ParamTest, override_ae_disabled)
   ASSERT_TRUE(log_client->regex_search("setting integer parameter ExposureTime to (.*)"));
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 1);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeManual);
 }
 
 TEST_F(ParamTest, override_exposure)
@@ -165,14 +166,14 @@ TEST_F(ParamTest, override_exposure)
   ASSERT_TRUE(log_client->regex_search("setting integer parameter ExposureTime to 15600"));
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 1);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeManual);
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
   ASSERT_EQ(param_client->get_parameters({"ExposureTime"}).front().as_int(), 15600);
 }
 
 TEST_F(ParamTest, override_ae_disabled_exposure)
 {
-  instantiate_camera({{"ExposureTimeMode", 1}, {"ExposureTime", 15600}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}, {"ExposureTime", 15600}});
 
   spin_all();
 
@@ -185,14 +186,14 @@ TEST_F(ParamTest, override_ae_disabled_exposure)
   ASSERT_TRUE(log_client->regex_search("setting integer parameter ExposureTime to 15600"));
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 1);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeManual);
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
   ASSERT_EQ(param_client->get_parameters({"ExposureTime"}).front().as_int(), 15600);
 }
 
 TEST_F(ParamTest, override_ae_enabled_exposure)
 {
-  instantiate_camera({{"ExposureTimeMode", 0}, {"ExposureTime", 15600}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeAuto}, {"ExposureTime", 15600}});
 
   spin_all();
 
@@ -209,7 +210,7 @@ TEST_F(ParamTest, override_ae_enabled_exposure)
   ASSERT_TRUE(log_client->regex_search("setting integer parameter ExposureTime to 15600"));
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 1);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeManual);
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
   ASSERT_EQ(param_client->get_parameters({"ExposureTime"}).front().as_int(), 15600);
 }
@@ -222,7 +223,7 @@ TEST_F(ParamTest, override_default_set_exposure)
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
 
   // by default, auto exposure is active
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 0);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeAuto);
 
   // setting 'ExposureTime' with 'ExposureTimeMode' enabled by default causes conflict
   const int exp_tar1 = exp_init + 100;
@@ -237,13 +238,13 @@ TEST_F(ParamTest, override_default_set_exposure)
 TEST_F(ParamTest, override_ae_disabled_set_exposure)
 {
   // set 'ExposureTimeMode' to manual
-  instantiate_camera({{"ExposureTimeMode", 1}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
 
   // 'ExposureTimeMode' takes the override value
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 1);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeManual);
 
   // setting 'ExposureTime' does not cause conflict and is applied
   const int exp_tar1 = exp_init + 100;
@@ -258,7 +259,7 @@ TEST_F(ParamTest, override_ae_disabled_set_exposure)
 TEST_F(ParamTest, override_ae_disabled_set_atom_ae_enabled_exposure)
 {
   // set 'ExposureTimeMode' to manual
-  instantiate_camera({{"ExposureTimeMode", 1}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
@@ -269,7 +270,7 @@ TEST_F(ParamTest, override_ae_disabled_set_atom_ae_enabled_exposure)
     param_client->get_parameters({"ExposureTimeMode", "ExposureTime"});
   const int exp_tar1 = exp_init + 100;
   const rcl_interfaces::msg::SetParametersResult res_atom =
-    param_client->set_parameters_atomically({{"ExposureTimeMode", 0}, {"ExposureTime", exp_tar1}});
+    param_client->set_parameters_atomically({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeAuto}, {"ExposureTime", exp_tar1}});
   ASSERT_FALSE(res_atom.successful);
   ASSERT_EQ(res_atom.reason, conflict_reason);
   // parameters do not change
@@ -279,7 +280,7 @@ TEST_F(ParamTest, override_ae_disabled_set_atom_ae_enabled_exposure)
 TEST_F(ParamTest, override_ae_disabled_set_atom_exposure_ae_enabled)
 {
   // set 'ExposureTimeMode' to manual
-  instantiate_camera({{"ExposureTimeMode", 1}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
@@ -290,7 +291,7 @@ TEST_F(ParamTest, override_ae_disabled_set_atom_exposure_ae_enabled)
     param_client->get_parameters({"ExposureTimeMode", "ExposureTime"});
   const int exp_tar1 = exp_init + 100;
   const rcl_interfaces::msg::SetParametersResult res_atom =
-    param_client->set_parameters_atomically({{"ExposureTime", exp_tar1}, {"ExposureTimeMode", 0}});
+    param_client->set_parameters_atomically({{"ExposureTime", exp_tar1}, {"ExposureTimeMode", libcamera::controls::ExposureTimeModeAuto}});
   ASSERT_FALSE(res_atom.successful);
   ASSERT_EQ(res_atom.reason, conflict_reason);
   // parameters do not change
@@ -300,7 +301,7 @@ TEST_F(ParamTest, override_ae_disabled_set_atom_exposure_ae_enabled)
 TEST_F(ParamTest, override_ae_disabled_set_indiv_ae_enabled_exposure)
 {
   // set 'ExposureTimeMode' to manual
-  instantiate_camera({{"ExposureTimeMode", 1}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
@@ -308,7 +309,7 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_ae_enabled_exposure)
   // setting 'ExposureTimeMode' and 'ExposureTime' individually one-by-one will fail evenetually
   const int exp_tar1 = exp_init + 100;
   const std::vector<rcl_interfaces::msg::SetParametersResult> res_indiv =
-    param_client->set_parameters({{"ExposureTimeMode", 0}, {"ExposureTime", exp_tar1}});
+    param_client->set_parameters({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeAuto}, {"ExposureTime", exp_tar1}});
   // first parameter 'ExposureTimeMode' does not cause conflicts
   ASSERT_TRUE(res_indiv[0].successful);
   ASSERT_EQ(res_indiv[0].reason, std::string {});
@@ -316,7 +317,7 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_ae_enabled_exposure)
   ASSERT_FALSE(res_indiv[1].successful);
   ASSERT_EQ(res_indiv[1].reason, "parameter 'ExposureTime' cannot be set because it was not declared");
   // only the parameter update for 'ExposureTimeMode' will have been applied
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 0);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeAuto);
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
 
   // setting 'ExposureTime' again will fail since 'ExposureTimeMode' has already been applied
@@ -331,7 +332,7 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_ae_enabled_exposure)
 TEST_F(ParamTest, override_ae_disabled_set_indiv_exposure_ae_enabled)
 {
   // set 'ExposureTimeMode' to manual
-  instantiate_camera({{"ExposureTimeMode", 1}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
@@ -339,7 +340,7 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_exposure_ae_enabled)
   // setting 'ExposureTime' and 'ExposureTimeMode' individually one-by-one will fail evenetually
   const int exp_tar1 = exp_init + 100;
   const std::vector<rcl_interfaces::msg::SetParametersResult> res_indiv =
-    param_client->set_parameters({{"ExposureTime", exp_tar1}, {"ExposureTimeMode", 0}});
+    param_client->set_parameters({{"ExposureTime", exp_tar1}, {"ExposureTimeMode", libcamera::controls::ExposureTimeModeAuto}});
   // first parameter 'ExposureTime' does not cause conflicts
   ASSERT_TRUE(res_indiv[0].successful);
   ASSERT_EQ(res_indiv[0].reason, std::string {});
@@ -348,15 +349,15 @@ TEST_F(ParamTest, override_ae_disabled_set_indiv_exposure_ae_enabled)
   ASSERT_EQ(res_indiv[1].reason, std::string {});
   // both parameters will have been updated individually, but 'ExposureTime' will have been unset due to 'ExposureTimeMode'
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 0);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeAuto);
 }
 
 TEST_F(ParamTest, override_ae_disabled_restore_exposure)
 {
-  instantiate_camera({{"ExposureTimeMode", 1}});
+  instantiate_camera({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 1);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeManual);
 
   // 'ExposureTime' has been restored
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
@@ -367,7 +368,7 @@ TEST_F(ParamTest, override_default_restore_exposure)
   instantiate_camera({});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 0);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeAuto);
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
 
   spin_all();
@@ -381,13 +382,13 @@ TEST_F(ParamTest, override_default_restore_exposure)
   ASSERT_FALSE(log_client->regex_search("setting integer parameter ExposureTime to (.*)"));
 
   const std::vector<rcl_interfaces::msg::SetParametersResult> res_indiv =
-    param_client->set_parameters({{"ExposureTimeMode", 1}});
+    param_client->set_parameters({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
   ASSERT_TRUE(res_indiv[0].successful);
   ASSERT_EQ(res_indiv[0].reason, std::string {});
 
   // 'ExposureTimeMode' applied
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 1);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeManual);
 
   // 'ExposureTime' has been restored
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTime"));
@@ -399,13 +400,13 @@ TEST_F(ParamTest, override_default_param_after_ae)
   instantiate_camera({});
 
   ASSERT_TRUE(param_client->is_set_parameter("ExposureTimeMode"));
-  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), 0);
+  ASSERT_EQ(param_client->get_parameters({"ExposureTimeMode"}).front().as_int(), libcamera::controls::ExposureTimeModeAuto);
   ASSERT_FALSE(param_client->is_set_parameter("ExposureTime"));
 
-  set_check_all_successful({{"ExposureTimeMode", 1}});
+  set_check_all_successful({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeManual}});
   ASSERT_TRUE(param_client->has_parameter("ExposureTime"));
   set_check_all_successful({{"Contrast", 2.0}});
-  set_check_all_successful({{"ExposureTimeMode", 0}});
+  set_check_all_successful({{"ExposureTimeMode", libcamera::controls::ExposureTimeModeAuto}});
   // wait for request allback to reset old parameters
   wait_image();
   ASSERT_TRUE(param_client->has_parameter("ExposureTime"));
